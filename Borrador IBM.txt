@@ -1,0 +1,113 @@
+Borrador TP IBM MAINFRAME
+
+A) Segmentación:
+
+	1) Carga de matriz (ALFABETO menos la J) /*------OK------*/
+
+	2) Carga del Mensaje (Caracteres alfabeto menos J) /*------OK------*/
+
+	3) Menu de seleccion de opciones /*------OK------*/
+
+	4) Separación del mensaje (Bloque de 2 caracteres, que no esten repetidos (ej: LL)  /*------OK------*/
+
+	5) Ubicar las 2 letras en la matriz
+
+	6) Reemplazar(Codificación/Decodificación)
+
+	7) Concatenar con el resultado
+
+	8) Volver a (4) Hasta que no existan más letras	
+
+	9) Imprimir por pantalla el resultado
+
+	10) Volver a (3) hasta que se elija la opcion "EXIT"  /*------OK------*/
+
+
+B) Preguntas:
+	-Ver decodificaciòn
+	-Validaciones lògicas o fisicas, ¿cuales se necesitan?
+	-La matriz siempre se carga al menos una vez, ¿se puede cambiar?
+	-Precondiciones
+
+C) TEST:
+
+	1) a) Imprimir por pantalla el resultado completo     /*-------------------OK------------------------*/
+	   b) Imprimir por pantalla la matriz por letra       /*-------------------OK------------------------*/
+	   c) Imprimir cada letra mediante un ciclo hasta que no existan mas letras /*---------OK------------*/
+	   d) Convertir seccion en rutina		      /*-------------------OK------------------------*/
+
+	2) a) Imprimir por pantalla el resultado completo     /*-------------------OK------------------------*/
+	   b) Imprimir por pantalla de a 2 letras             /*-------------------OK------------------------*/
+	   c) Imprimir c/par letras mediante un ciclo hasta que no existan mas letras /*---------OK----------*/
+	   d) Convertir seccion en rutina		      /*-------------------OK------------------------*/
+	
+	3) a) Imprimir la opcion elegida  /*-------------OK-------------------*/
+	   b) Ejecutar cada Sección	  /*-------------OK-------------------*/
+		
+
+D) Validaciones:
+
+	1) a) No ingrese la letra J
+	   b) Son 25 letras
+	   c) No se repite ninguna letra
+
+	2) a) No ingrese la letra J /*REALIZAR*/
+	   b) Son 30 letras????
+	   c) No se repite ninguna letra dentro del par /*REALIZAR*/
+
+	4) a) Sin letras repetidas, sino volver a la carga o salir
+
+E) Datos ejemplo:
+
+	1) ABCDEFGHIKLMNOPQRSTUVWXYZ
+	   CD*
+
+	2) MABCDEFGHIKLNOPQRSTUVWXYZ
+	   MENSADEPRUEBADETREINTACARACTER
+
+	3) MABCDEFGHIKLNOPQRSTUVWXYZ
+	   MENSADEPRUEBADETREINTA*
+
+
+F) Ejecucion:
+	
+	ASMLG Orga\template NOTIME
+
+G) Rotulos:
+
+	ASIGLET: Seccion en la que se asignan las letras de la matriz a imrpimir
+	ASIGPAR: Seccion en la que se asignan los pares de letras del mensaje
+	POSENMAT: Valor de la posición en la Matriz.
+	CARGAMAT: (RUTINA) Solicita y carga la matriz.
+	CARGAMSJ: (RUTINA) Solicita y carga el mensaje.
+	BUSENMAT: (RUTINA) Busca la letra cargada en el LETABUS dentro de la matriz y ubica en POSENMAT el valor de I
+	LETENCON: LETRA ENCONTRADA
+
+H) Precondiciones:
+
+	-Mensaje tope de 30 caracteres + '*'
+	-Mensaje sin espacios
+	-Caso misma columna si es el ultimo de la columna, toma el primero de la siguiente (o el primero de la misma?)
+
+I) Proceso a realizar:
+
+	6) a) Codificación:
+
+		I) L1I <> L2I ^ L1J <> L2J ==> L1I/5, L2I/5 AL MAYOR LE RESTO 1 AL I ORIGINAL Y AL OTRO LE SUMO 1
+		II) L1I = L2I ^ L1J <> L2J ==> I+1
+		III) L1I <> L2I ^ L1J = L2J ==> I+5, TOPE ==> RESTO (I/5)+1
+
+	   b) Decodificación:
+
+		I) L1I <> L2I ^ L1J <> L2J ==> L1I/5, L2I/5 AL MAYOR LE RESTO 1 AL I ORIGINAL Y AL OTRO LE SUMO 1
+		II) L1I = L2I ^ L1J <> L2J ==> I-1
+		III) L1I <> L2I ^ L1J = L2J ==> I-5, TOPE ==> 20+I-1, I=1 ==> I=25
+
+J) Proximas tareas (Pendientes)
+	-Validar mensaje, ver corte mensaje *
+
+---------------------------------------------------------------
+2016 - 2do CUATRIMESTRE.
+
+-CORREGIR VALIDACION DE TAMAÑO DE MATRIZ
+-VER BLANQUEO DE MENSAJE POR ERROR DE TAMAÑO.

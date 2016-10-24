@@ -1,0 +1,345 @@
+***********************************************************************
+* 75.03 ORGANIZACION DEL COMPUTADOR                    		          *
+*                                                                     *
+* DESCRIPCION DEL MODULO:                                             *
+*                                                                     *
+***********************************************************************
+*   REGISTROS GENERALES                                               *
+*        REG 3 = REGISTRO BASE                                        *
+*                                                                     *
+*                                                                     *
+***********************************************************************
+MATCODE SUBENTRY BASES=(3)
+
+*---------------------CARGA INICIAL-----------------------------------*
+		 BAL	5,CARGAMAT	 
+		 BAL	5,CARGAMSJ
+		 BAL	5,MENU	 
+*-------------------FIN CARGA INICIAL---------------------------------*
+*---------------------------MENU--------------------------------------*
+MENU	 WTO	'OPCIONES:'
+		 WTO	'1) CODIFICAR.'
+		 WTO	'2) DECODIFICAR.'
+		 WTO	'3) CARGAR NUEVA MATRIZ.'
+		 WTO	'4) CARGAR NUEVO MENSAJE.'
+		 WTOR	'0) SALIR.',OPCION,,WAITECB
+		 WAIT	ECB=WAITECB
+		 
+		 CLI	OPCION,C'1'
+		 BNE	OPCION2
+		 BAL	5,CODIFICA
+		 B		MENU
+OPCION2	 CLI	OPCION,C'2'
+		 BNE	OPCION3
+		 BAL	5,DECODIFI
+		 B		MENU
+OPCION3	 CLI	OPCION,C'3'
+		 BNE	OPCION4
+		 BAL	5,CARGAMAT	 
+		 B		MENU
+OPCION4	 CLI	OPCION,C'4'
+		 BNE	OPCION0
+	     BAL	5,CARGAMSJ	 
+		 B		MENU
+OPCION0	 CLI	OPCION,C'0'
+		 BE		FINPROG
+		 WTO	'SELECCIONE UNA OPCION ENTRE 1 Y 5'
+		 B		MENU
+
+*-------------------------FIN MENU------------------------------------*
+FIN		 WTO	MF=(E,WTOBLOCK)
+		 B	MENU
+FINPROG	 WTO	''
+	 SUBEXIT
+*----------------------DEFINICION DE ROTULOS--------------------------*
+WAITECB	 DC	F'0'
+WTOBLOCK DC	H'34'
+		 DC	H'0'
+MENSAFIN DC	CL30'                              '
+MATCARGA DS	CL25
+MATRIZ	 DC	CL30'******************************'
+MENCARGA DC	C'*******************************'
+LETRAFIN DS	CL1
+MENSAJE	 DC	C'*******************************'
+LETRA	 DS	CL1
+LETRA1	 DS	CL1
+LETRA2	 DS	CL1
+LETABUS	 DS	CL1
+LETMAT	 DS	CL1
+OPCION	 DS	CL1
+VALIMAT	 DS	CL1'N'
+VALIMSJ	 DS	CL1'N'
+MATVAL	 DC	CL25'ABCDEFGHIKLMNOPQRSTUVWXYZ'
+POSABS1	 DC	PL8'0'
+POSENMAT DC	PL8'0'
+POS1I	 DC	PL8'0'
+POS1J	 DC	PL8'0'
+POS2I	 DC	PL8'0'
+POS2J	 DC	PL8'0'
+POSIGEN	 DC	PL8'0'
+POSJGEN	 DC	PL8'0'
+POSJAUX	 DC	PL8'0'
+POSABS2	 DC	PL8'0'
+POSABSG	 DC	PL8'0'
+TOPEMAT	 DC	PL8'24'
+CERO	 DC	PL8'0'
+TOPECOL	 DC	PL8'5'
+DECPRUEB DC	PL8'0'
+*--------------------FIN DEFINICION DE ROTULOS------------------------*
+*-------------------------RUTINAS-------------------------------------*
+*-----------------------CARGA DE MATRIZ-------------------------------*
+CARGAMAT WTOR	'INGRESE ALFABETO SIN J O * PARA SALIR',MATCARGA,,WAITECB
+		 WAIT	ECB=WAITECB
+		 CLI	MATCARGA,C'*'
+		 BE		MENU
+		 MVC	MATRIZ(25),MATCARGA
+		 LA		11,MATRIZ
+VALMAT	 MVC	LETRA,0(11)
+		 CLI	LETRA,C'*'
+		 BE		FVALIMAR
+		 LA		8,25
+		 LA		9,MATVAL
+CICLOVMA MVC	LETMAT,0(9)
+		 LR		6,11
+		 CLC 	LETRA,LETMAT
+		 BE		BUSLETRE
+		 LA		9,1(9)
+		 BCT	8,CICLOVMA
+		 B		ERLETINC
+PROXLET	 LA		11,1(11)
+		 B		VALMAT
+FVALIMAR BR		5
+*----CARGAR VALOR VALIDO DE MATRIZ----*
+BUSLETRE LA		6,1(6)
+PLETREP	 MVC	LETMAT,0(6)
+		 CLC	LETRA,LETMAT
+		 BE		ERRORMAT
+		 BCT	8,BUSLETRE	
+		 B		PROXLET
+*---------------------FIN CARGA DE MATRIZ-----------------------------*
+*----------------------CARGA DE MENSAJE-------------------------------*
+CARGAMSJ MVC	MENCARGA,=C'*******************************'
+		 MVC	MATCARGA,=C'*******************************'
+		 WTOR	'MENSAJE SIN LETRA J CON * FIN MSJ',MENCARGA,30,WAITECB
+		 WAIT	ECB=WAITECB
+		 MVC	MENSAJE(30),MENCARGA
+		 LA 	6,MENSAFIN 
+		 LA		11,MENSAJE 
+VALDUP	 MVC	LETRA1,0(11)
+		 CLI	LETRA1,C'*'
+		 BE		FINVALID
+		 LA		8,25
+		 MVC	LETRA,LETRA1
+		 BAL	7,EXISTLET	
+		 LA		11,1(11)
+		 MVC	LETRA2,0(11)
+		 CLI	LETRA2,C'*'
+		 BE		FINVALID
+		 LA		8,25
+		 MVC	LETRA,LETRA2
+		 BAL	7,EXISTLET
+		 CLC	LETRA1,LETRA2
+		 BE		ERLETDUP
+		 LA		11,1(11)	
+		 B		VALDUP
+FINVALID BR		5
+
+EXISTLET LA		9,MATVAL
+CICLEXIS MVC	LETMAT,0(9)
+		 CLC	LETRA,LETMAT
+		 BE		SIEXISTE
+		 LA		9,1(9)	
+		 BCT	8,CICLEXIS
+		 B		ERLETINM
+SIEXISTE BR		7
+*--------------------FIN CARGA DE MENSAJE-----------------------------*
+
+*----------------------CODIFICACIÓN-----------------------------------*
+CODIFICA BAL	7,ASIGPAR
+*---- antes de la bal verificar las 2 condiciones---*	 
+		 CP		POS1I,POS2I
+		 BNE	COMPARAJ
+		 ZAP	POSJGEN,POS1J
+		 BAL	7,CASOLINE
+		 ZAP	POS1J,POSJGEN
+		 ZAP	POSJGEN,POS2J
+		 BAL	7,CASOLINE
+		 ZAP	POS2J,POSJGEN
+		 BAL	8,CONPOSAB
+		 B		FINPAR	 
+*--------------------FIN CODIFICACIÓN---------------------------------*
+*-----------------------CASO MISMA LINEA C----------------------------*
+CASOLINE CP		POSJGEN,=P'4'
+		 BE		POSJEN0
+		 AP		POSJGEN,=P'1'
+		 BR		7
+POSJEN0	 SP		POSJGEN,POSJGEN
+		 BR		7
+*---------------------FIN CASO MISMA LINEA C--------------------------*
+*----------------------CASO MISMA COLUMNA-----------------------------*
+CASOCOL  CP		POSIGEN,=P'4'
+		 BE		POSIEN0
+		 AP		POSIGEN,=P'1'
+		 BR		7
+POSIEN0	 SP		POSIGEN,POSIGEN
+FINCASO	 BR		7
+
+*--------------------FIN CASO MISMA COLUMNA---------------------------*
+*---------------------CASO 2C: COLUMNAS IGUALES-----------------------*
+COMPARAJ CP		POS1J,POS2J
+		 BNE	CASO3
+		 ZAP	POSIGEN,POS1I
+		 BAL	7,CASOCOL
+		 ZAP	POS1I,POSIGEN
+		 ZAP	POSIGEN,POS2I
+		 BAL	7,CASOCOL
+		 ZAP	POS2I,POSIGEN
+		 BAL	8,CONPOSAB
+		 B		FINPAR
+*-------------------FIN CASO 2C: COLUMNAS IGUALES---------------------*
+
+*-----------------CASO 3C: COLUMNAS Y FILAS DISTINTAS-----------------*
+CASO3	 ZAP	POSJAUX,POS1J
+		 ZAP	POS1J,POS2J
+		 ZAP	POS2J,POSJAUX
+		 BAL	8,CONPOSAB
+		 B		FINPAR
+*---------------FIN CASO 3C: COLUMNAS Y FILAS DISTINTAS---------------*
+
+*---------------------------DECODIFICACIÓN----------------------------*
+DECODIFI BAL	7,ASIGPAR
+*---- antes de la bal verificar las 2 condiciones---*
+		 CP		POS1I,POS2I
+		 BNE	COMPAJD
+		 ZAP	POSJGEN,POS1J
+		 BAL	7,CASOLIND
+		 ZAP	POS1J,POSJGEN
+		 ZAP	POSJGEN,POS2J
+		 BAL	7,CASOLIND
+		 ZAP	POS2J,POSJGEN
+		 BAL	8,CONPOSAB
+		 B		FINPAR	 
+*--------------------FIN DECODIFICACIÓN-------------------------------*
+*-----------------------CASO MISMA LINEA D----------------------------*
+CASOLIND CP		POSJGEN,=P'0'
+		 BE		POSJEN0D
+		 SP		POSJGEN,=P'1'
+		 BR		7
+POSJEN0D ZAP	POSJGEN,=P'4'
+		 BR		7
+*---------------------FIN CASO MISMA LINEA D--------------------------*
+*----------------------CASO MISMA COLUMNA D---------------------------*
+CASOCOLD CP		POSIGEN,=P'0'
+		 BE		POSIEN0D
+		 SP		POSIGEN,=P'1'
+		 BR		7
+POSIEN0D ZAP	POSIGEN,=P'4'
+FINCASOD BR		7
+*--------------------FIN CASO MISMA COLUMNA---------------------------*
+*---------------------CASO 2D: COLUMNAS IGUALES-----------------------*
+COMPAJD  CP		POS1J,POS2J
+		 BNE	CASO3D
+		 ZAP	POSIGEN,POS1I
+		 BAL	7,CASOCOLD
+		 ZAP	POS1I,POSIGEN
+		 ZAP	POSIGEN,POS2I
+		 BAL	7,CASOCOLD
+		 ZAP	POS2I,POSIGEN
+		 BAL	8,CONPOSAB
+		 B		FINPAR
+*-------------------FIN CASO 2D: COLUMNAS IGUALES---------------------*
+*-----------------CASO 3D: COLUMNAS Y FILAS DISTINTAS-----------------*
+CASO3D	 ZAP	POSJAUX,POS1J
+		 ZAP	POS1J,POS2J
+		 ZAP	POS2J,POSJAUX
+		 BAL	8,CONPOSAB
+		 B		FINPAR
+*---------------FIN CASO 3D: COLUMNAS Y FILAS DISTINTAS---------------*	
+*-------------------------FIN DECODIFICACIÓN--------------------------*
+
+*---------------UBICAR LETRAS EN MATRIZ-------------------------------*
+ASIGPAR	 LA		11,MENSAJE
+CICLOLET MVC	LETABUS,0(11)
+		 CLI	LETABUS,C'*'
+		 BE		FIN
+		 BAL	8,BUSENMAT
+		 ZAP	POS1I,POSIGEN
+		 ZAP	POS1J,POSJGEN
+		 ZAP	POSABS1,POSENMAT
+		 LA		11,1(11)
+		 MVC	LETABUS,0(11)
+		 CLI	LETABUS,C'*'
+		 BE		CASO1LET
+		 BAL	8,BUSENMAT	
+		 ZAP	POS2I,POSIGEN
+		 ZAP	POS2J,POSJGEN
+		 ZAP	POSABS2,POSENMAT
+		 LA		11,1(11)	
+FINCICLO BR		7
+CASO1LET MVC 	0(1,6),LETABUS
+		 LA 	6,1(6)
+	     B		FIN
+*-------------FIN UBICAR LETRAS EN MATRIZ-----------------------------*
+FINPAR   AP		POSABS1,=P'1'
+		 LA		11,MATRIZ
+LETUBICA MVC	LETRAFIN,0(11)
+		 LA		11,1(11)
+		 CP		POSABS1,=P'0'
+		 SP		POSABS1,=P'1'
+		 BNE	LETUBICA
+		 MVC 	0(1,6),LETRAFIN 
+		 LA 	6,1(6)	 
+		 SLA	4,=P'16'
+		 AL		4,LETRAFIN
+		 AP		POSABS2,=P'1'
+		 LA		11,MATRIZ
+LETUBIC2 MVC	LETRAFIN,0(11)
+		 LA		11,1(11)
+		 CP		POSABS2,=P'0'
+		 SP		POSABS2,=P'1'
+		 BNE	LETUBIC2
+		 MVC 	0(1,6),LETRAFIN 
+		 LA 	6,1(6)	 
+		 MVC	MENSAJE,MENSAJE+2	
+		 CLC	OPCION,=C'1'
+		 BE		CODIFICA
+		 BNE	DECODIFI
+*-------------------BUSCAR LETRA EN MATRIZ----------------------------*
+BUSENMAT LA		12,MATRIZ
+		 SP		POSENMAT,POSENMAT
+		 SP		POSIGEN,POSIGEN
+REINICIJ SP		POSJGEN,POSJGEN
+ASIGLET	 MVC	LETRA,0(12)
+		 CLC	LETRA,LETABUS
+		 BE		LETENCON
+		 LA		12,1(12)
+		 AP		POSENMAT,=P'1'
+		 CP		POSJGEN,=P'4'
+		 BE		IGUAL4
+		 AP		POSJGEN,=P'1'	 
+		 B		ASIGLET
+IGUAL4	 AP		POSIGEN,=P'1'
+		 B		REINICIJ
+LETENCON BR		8
+*-----------------FIN BUSCA LETRA EN MATRIZ---------------------------*
+*-------------------CONVIERTO POSI,J A POS ABSOLUTA-------------------*
+CONPOSAB MP		POS1I,=P'5'
+		 ZAP	POSABS1,POS1J
+		 AP		POSABS1,POS1I
+		 MP		POS2I,=P'5'
+		 ZAP	POSABS2,POS2J
+		 AP		POSABS2,POS2I
+		 BR		8
+*----------------FIN CONVIERTO POSI,J A POS ABSOLUTA------------------*
+*-------------------------MANEJO DE ERRORES---------------------------*
+ERLETDUP WTO	'LETRA REPETIDA, INGRESE MENSAJE NUEVAMENTE'
+		 B		CARGAMSJ
+ERRORMAT WTO	'LETRA REPETIDA, INGRESE MATRIZ NUEVAMENTE'
+		 B		CARGAMAT
+ERLETINC WTO	'MATRIZ INVALIDA, REINGRESE O "*" PARA SALIR'
+		 B		CARGAMAT
+ERLETINM WTO	'MENSAJE INVALIDO, REINGRESE O "*" PARA SALIR'
+		 B		CARGAMSJ
+*----------------------FIN MANEJO DE ERRORES--------------------------*
+*-----------------------FIN RUTINAS-----------------------------------*
+	 END
