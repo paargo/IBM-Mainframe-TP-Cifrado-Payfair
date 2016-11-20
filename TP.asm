@@ -9,25 +9,39 @@ opcion3 db 10,13,'3) Inclusion de un conjunto en otro$'
 opcion4 db 10,13,'4) Mostrar conjuntos$'
 opcion0 db 10,13,'0) Salir del programa$'
 
-solicElem db 10,13,'Ingrese elemento (2 caracteres)$'
-msjNoExis db 10,13,'El elemento no existe en el conjunto$'
-msjExis db 10,13,'El elemento existe en el conjunto$'
+msgConj	db 10,13,'Ingrese un numero de conjunto (1-6)','$'
 
-conjfi1 db '1234567890123456789012345678901234567890$'
-conjfi2 db '1234567890$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'
+
+solicElem db 10,13,'Ingrese elemento (2 caracteres)$'
+msjNoExis db 10,13,'El elemento NO existe en el conjunto$'
+msjExis db 10,13,'El elemento existe en el conjunto$'
+msjCont db 10,13,'El conjunto A se encuentra contenido en el conjunto B$'
+msjNoCont db 10,13,'El conjunto A NO se encuentra contenido en el conjunto B$'
+msjIgual db 10,13,'El conjunto A es igual al conjunto B$'
+msjNoIgual db 10,13,'El conjunto A NO es igual al conjunto B$'
+msjElemInv db 10,13,'Elemento invalido ingrese nuevamente$'
+
+conjfi1 db '1234567890123456789012345678901234567890$$'
+conjfi2 db '341290$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'
+conjfi3 db '1234567890123456789012345678901234567890$$'
+conjfi4 db '1234567890123456789012345678901234567890$$'
+conjfi5 db '341290$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'
+conjfi6 db '1234567890123456789012345678901234567890$$'
+
+
+conj1 db '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$'
 
 existe	db	'N'
+esIgual db	'N'
+estaCont db	'N'
+elemVal db 'N'
+
 dirco1  dw 0
 dirco2  dw 0
 
 dirGen  dw 0
-
-		db	41
-		db	0
-conj1	times 40 resb 1
-		db	41
-		db	0
-conj6	times 40 resb 1
+conjA  dw 0
+conjB  dw 0
 
 cantConj db 1		
 vacio 	db 10,13,'$'
@@ -38,6 +52,7 @@ vector   times 246 db '$'
 		db	5
 		db	0
 elem	times 3 db  '$'
+contador	db 2
 
 segment pila stack
 	resb 64
@@ -53,16 +68,7 @@ segment codigo code
 		mov 	ss,ax
 		mov		sp,stacktop
 
-		mov		ax,word[conjfi1]
-		mov		[dirco1],ax
-		mov		ax,word[conjfi2]
-		mov		[dirco2],ax
 
-		
-;		lea		ax,[conjfi1]
-;		mov	 	[dirco1],ax
-;		lea		ax,[conjfi2]
-;		mov	 	[dirco2],ax
 ;fin inicializacion
 
 ;-----------SOLICITA CONJUNTOS----------;
@@ -106,9 +112,9 @@ menu:
 		cmp 	al,'1'
 		je 		pertenece
 		cmp 	al,'2'
-		je 		menu
+		je 		Igual
 		cmp 	al,'3'
-		je 		menu
+		je 		cotenido
 		cmp 	al,'4'
 		je 		impConjuntos
 		cmp 	al,'0'
@@ -133,10 +139,14 @@ pertenece:
 		call	leer_caracter
 		mov		byte[elem+1],al
 		mov		byte[elem+2],'$'
+		
+		call	validaElem
+		cmp		byte[elemVal],'N'
+		je		pertenece
 ;llamar a caracter valido
 
-		mov		bx,[dirco1]
-		mov		[dirGen],bx
+		call	elijoConj
+		mov		ax,[elem]		
 		call	elemEnConj	
 		
 		cmp		byte[existe],'S'
@@ -157,20 +167,17 @@ finPert:
 elemEnConj:
 		mov cx,20
 		mov si,0
-		mov	bx,[elem]		
-
 cicloBus:				
-		cmp bx,word[dirGen]
+		cmp ax,word[bx+si]
 		jne distinto
 		mov byte[existe],'S'
-		ret
-		
+			ret		
 distinto:		
 		inc	si
+		inc si
 		loop cicloBus
 		mov byte[existe],'N'
-		ret
-
+			ret
 ;------FIN BUSCO ELEM EN CONJUNTO-------;
 ;----------------FUNCIONES--------------;	
 ;---------------------------------------;	
@@ -190,13 +197,93 @@ obtConj:
 leer_caracter:
 		mov	ah,1
 		int 21h
-		ret
-
-converADec:
-		sub 	ax,48
-		ret
+			ret
 	
 ;---------------------------------------;
+
+;-------------------1 COJUNTO ESTA CONTENIDO EN OTRO-------------------------;
+cotenido:
+		call	elijoConj 		;ELIJE EL CONJUNTO A
+		mov		[conjA],bx
+		call	elijoConj 		;ELIJE EL CONJUNTO B
+		mov		[conjB],bx
+		call 	funcCont
+		cmp		byte[estaCont],'S'
+		jne		noCont
+		mov 	dx,msjCont
+		mov 	ah,9
+		int 	21h			
+		jmp		menu
+
+noCont:
+		mov 	dx,msjNoCont
+		mov 	ah,9
+		int 	21h			
+		jmp		menu
+
+funcCont:
+		mov	word[contador],20
+		mov byte[estaCont],'N'
+		mov	si,0
+		
+cicloCont:
+		mov	byte[existe],'N'
+		mov	bx,[conjA]
+		mov ax,word[bx+si]
+		mov	[elem],ax
+		mov	bx,[conjB]
+		
+		cmp	byte[elem],'$'
+		je	finSCont
+
+		call	elemEnConj
+		
+		cmp	byte[existe],'N'
+		je	finNCont
+		
+		sub	word[contador],1
+		inc	si
+		inc	si
+		cmp	word[contador],0
+		jne cicloCont
+finSCont:
+		mov byte[estaCont],'S'
+			ret
+finNCont:
+		mov byte[estaCont],'N'
+			ret
+;--------------FIN 1 COJUNTO ESTA CONTENIDO EN OTRO-------------------------------;
+;-------------------------1 COJUNTO ES IGUAL A OTRO-------------------------------;
+Igual:
+		call	elijoConj 		;ELIJE EL CONJUNTO A
+		mov		[conjA],bx
+		call	elijoConj 		;ELIJE EL CONJUNTO B
+		mov		[conjB],bx
+		
+		call 	funcCont
+		cmp		byte[estaCont],'S'
+		jne		noEsIgual
+
+		mov		bx,[conjA]
+		mov		ax,[conjB]
+		mov		[conjB],bx
+		mov		[conjA],ax
+		call 	funcCont
+		cmp		byte[estaCont],'S'
+		jne		noEsIgual
+		
+		mov 	dx,msjIgual
+		mov 	ah,9
+		int 	21h			
+		jmp		menu
+
+noEsIgual:
+		mov 	dx,msjNoIgual
+		mov 	ah,9
+		int 	21h			
+		jmp		menu
+
+;-----------------------FIN 1 COJUNTO ES IGUAL A OTRO-----------------------------;
 ;-------------------MOSTRAR CONJUNTOS (OPCION 2)----------------------------------;
 impConjuntos:
 			
@@ -237,6 +324,78 @@ impConjuntos:
 	jmp menu
 ;SE COMENTA POR BACKUP PARA USAR SIN CARGA DE VECTORES
 ;-------------------FIN MOSTRAR CONJUNTOS (OPCION 2)------------------------------;		
+;------------------------VALIDA ELEMENTO------------------------------------------;
+validaElem:
+		mov si,0
+cicloVal:
+		cmp	byte[elem+si],'A'
+		jl	valNum
+		cmp	byte[elem+si],'Z'
+		jnle elemInval
+		jle	proxByte
+valNum:		
+		cmp	byte[elem+si],'0'
+		jl  elemInval
+		cmp	byte[elem+si],'9'
+		jnle elemInval
+proxByte:		
+		inc si
+		cmp si,2
+		jl	cicloVal
+elemValido:		
+		mov	byte[elemVal],'S'
+			ret
+elemInval:
+		mov 	dx,msjElemInv
+		mov 	ah,9
+		int 	21h
+		mov	byte[elemVal],'N'
+			ret
+;------------------------FIN VALIDA ELEMENTO--------------------------------------;
+;------------------------GUARDAR CONJUNTO EN BX-----------------------------------;
+elijoConj:
+		mov 	dx,msgConj
+		mov 	ah,9
+		int 	21h
+;		call	impConjuntos
+		mov 	dx,vacio
+		mov 	ah,9
+		int 	21h
+		
+		call 	leer_caracter
+		cmp 	al,'1'
+		jne 	opConj2
+		mov		bx,conjfi1
+			ret
+opConj2:
+		cmp 	al,'2'
+		jne 	opConj3
+		mov		bx,conjfi2
+			ret
+opConj3:
+		cmp 	al,'3'
+		jne 	opConj4
+		mov		bx,conjfi3
+			ret
+opConj4:
+		cmp 	al,'4'
+		jne 	opConj5
+		mov		bx,conjfi4
+			ret
+opConj5:
+		cmp 	al,'5'
+		jne 	opConj6
+		mov		bx,conjfi5
+			ret
+opConj6:
+		cmp 	al,'6'
+		jne 	elijoConj
+		mov		bx,conjfi6
+			ret
+		jmp 	menu
+
+			ret
+;----------------------FIN GUARDAR CONJUNTO EN BX---------------------------------;
 ;-----------------------------	
 printMsg:
 		mov		ah,9
