@@ -79,7 +79,8 @@ obtConj1:
 		lea		dx,[conjfi1-2]
 		call	cargaConj
 		mov		bx,conjfi1
-		call	proceConj
+		call	insertFin
+		call	validaConj
 		cmp		byte[valConj],'N'
 		jne		obtConj2
 		jmp		obtConj1
@@ -89,7 +90,8 @@ obtConj2:
 		lea		dx,[conjfi2-2]
 		call	cargaConj
 		mov		bx,conjfi2
-		call	proceConj
+		call	insertFin
+		call	validaConj
 		cmp		byte[valConj],'N'
 		jne		obtConj3
 		jmp		obtConj2
@@ -99,7 +101,8 @@ obtConj3:
 		lea		dx,[conjfi3-2]
 		call	cargaConj
 		mov		bx,conjfi3
-		call	proceConj
+		call	insertFin
+		call	validaConj
 		cmp		byte[valConj],'N'
 		jne		obtConj4
 		jmp		obtConj3
@@ -109,7 +112,8 @@ obtConj4:
 		lea		dx,[conjfi4-2]
 		call	cargaConj
 		mov		bx,conjfi4
-		call	proceConj
+		call	insertFin
+		call	validaConj
 		cmp		byte[valConj],'N'
 		jne		obtConj5
 		jmp		obtConj4
@@ -119,7 +123,8 @@ obtConj5:
 		lea		dx,[conjfi5-2]
 		call	cargaConj
 		mov		bx,conjfi5
-		call	proceConj
+		call	insertFin
+		call	validaConj
 		cmp		byte[valConj],'N'
 		jne		obtConj6
 		jmp		obtConj5
@@ -129,7 +134,8 @@ obtConj6:
 		lea		dx,[conjfi6-2]
 		call	cargaConj
 		mov		bx,conjfi6
-		call	proceConj
+		call	insertFin
+		call	validaConj
 		cmp		byte[valConj],'N'
 		jne		menu
 		jmp		obtConj6
@@ -138,13 +144,10 @@ obtConj:
 		mov 	dx,msgIng
 		call	printMsg
 			ret
+
 cargaConj:
 		mov		ah,0ah
 		int		21h
-			ret
-proceConj:
-		call	insertFin
-		call	validaConj
 			ret
 insertFin:		
 		mov 	ax,0
@@ -175,7 +178,6 @@ valConjloop:
 finValConj:
 		mov		byte[valConj],'S'
 			ret
-
 ;---------FIN SOLICITA CONJUNTOS--------;
 ;------------------MENU-----------------;
 menu:
@@ -406,37 +408,31 @@ elijoConj:
 		call 	leer_caracter
 		cmp 	al,'1'
 		jne 	opConj2
-;		mov		bx,word[conjfi1]
 		mov		bx,conjfi1
 			ret
 opConj2:
 		cmp 	al,'2'
 		jne 	opConj3
-;		mov		bx,word[conjfi2]
 		mov		bx,conjfi2
 			ret
 opConj3:
 		cmp 	al,'3'
 		jne 	opConj4
-;		mov		bx,word[conjfi3]
 		mov		bx,conjfi3
 			ret
 opConj4:
 		cmp 	al,'4'
 		jne 	opConj5
-;		mov		bx,word[conjfi4]
 		mov		bx,conjfi4
 			ret
 opConj5:
 		cmp 	al,'5'
 		jne 	opConj6
-;		mov		bx,word[conjfi5]
 		mov		bx,conjfi5
 			ret
 opConj6:
 		cmp 	al,'6'
 		jne 	elijoConj
-;		mov		bx,word[conjfi6]
 		mov		bx,conjfi6
 			ret
 
